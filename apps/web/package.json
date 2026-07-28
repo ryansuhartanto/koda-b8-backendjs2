@@ -1,0 +1,16 @@
+{
+	"name": "web",
+	"private": true,
+	"type": "module",
+	"imports": {
+		"#/*": [
+			"./src/*.ts",
+			"./src/*.tsx"
+		]
+	},
+	"scripts": {
+		"dev": "vp dev",
+		"build": "vp build",
+		"preview": "vp preview"
+	}
+}

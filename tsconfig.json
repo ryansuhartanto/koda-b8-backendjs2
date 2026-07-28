@@ -3,8 +3,7 @@
 	"extends": ["@kekkon-nexus/config/ts", "@kekkon-nexus/config/ts/strict"],
 	"compilerOptions": {
 		"noEmit": true,
-		"types": ["@types/node"],
+		"types": ["*", "vite-plus/client"],
 		"skipLibCheck": true
-	},
-	"exclude": ["./dist"]
+	}
 }

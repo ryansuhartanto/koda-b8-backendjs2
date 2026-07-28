@@ -3,11 +3,17 @@
 	"license": "MIT",
 	"author": "Ryan Suhartanto <suhartanto@kekkon.nexus>",
 	"repository": "ryansuhartanto/koda-b8-backendjs2",
+	"workspaces": [
+		"apps/*"
+	],
 	"type": "module",
 	"scripts": {
-		"prepare": "vp config",
 		"fmt": "vp fmt",
-		"lint": "vp lint"
+		"lint": "vp lint",
+		"dev": "vp run -r --parallel dev",
+		"build": "vp run -r build",
+		"preview": "vp run -r --parallel preview",
+		"prepare": "vp config"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^21.2.1",
@@ -18,5 +24,8 @@
 		"oxlint-tsgolint": "^7.0.2001",
 		"typescript": "^7.0.2",
 		"vite-plus": "^0.2.6"
+	},
+	"overrides": {
+		"vite": "npm:@voidzero-dev/vite-plus-core@^0.2.6"
 	}
 }

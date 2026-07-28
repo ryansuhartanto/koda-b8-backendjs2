@@ -1,0 +1,20 @@
+{
+	"name": "api",
+	"private": true,
+	"type": "module",
+	"imports": {
+		"#/*": [
+			"./src/*.ts"
+		]
+	},
+	"scripts": {
+		"dev": "node --watch --watch-preserve-output src/index.ts",
+		"preview": "node src/index.ts"
+	},
+	"dependencies": {
+		"express": "^5.2.1"
+	},
+	"devDependencies": {
+		"@types/express": "^5.0.6"
+	}
+}
