@@ -4,13 +4,22 @@
 	"type": "module",
 	"imports": {
 		"#/*": [
-			"./src/*.ts",
-			"./src/*.tsx"
+			"./src/*.tsx",
+			"./src/*.ts"
 		]
 	},
 	"scripts": {
 		"dev": "vp dev",
 		"build": "vp build",
 		"preview": "vp preview"
+	},
+	"dependencies": {
+		"react": "^19.2.8",
+		"react-dom": "^19.2.8"
+	},
+	"devDependencies": {
+		"@types/react": "^19.2.17",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^6.0.4"
 	}
 }
