@@ -1,5 +1,8 @@
 import React from "react";
 
+// oxlint-disable-next-line import/no-unassigned-import
+import "#/main.css";
+
 // oxlint-disable-next-line unicorn/prefer-top-level-await
 const greeting = (async (): Promise<string> => {
 	const req = await fetch("http://localhost:3000/");

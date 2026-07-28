@@ -26,6 +26,8 @@
 		"vite-plus": "^0.2.6"
 	},
 	"overrides": {
+		"jiti": "^2.7.0",
+		"lightningcss": "^1.33.0",
 		"oxfmt": ">=0.61.0 <1",
 		"oxlint": "^1.76.0",
 		"vite": "npm:@voidzero-dev/vite-plus-core@^0.2.6"
