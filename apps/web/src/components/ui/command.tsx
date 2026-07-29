@@ -14,8 +14,8 @@ import {
 	AutocompleteItem,
 	AutocompleteList,
 	AutocompleteSeparator,
-} from "#/components/ui/autocomplete.tsx";
-import { cn } from "#/lib/utils.ts";
+} from "#/components/ui/autocomplete";
+import { cn } from "#/lib/utils";
 
 export const CommandDialog: typeof CommandDialogPrimitive.Root =
 	CommandDialogPrimitive.Root;
