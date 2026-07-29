@@ -1,7 +1,7 @@
 import express from "express";
 import type { Express } from "express";
 
-import { corsMiddleware } from "#/middleware/cors";
+import { corsMiddleware } from "#/middlewares/cors";
 
 const app: Express = express();
 
