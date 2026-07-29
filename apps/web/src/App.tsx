@@ -1,9 +1,12 @@
+import { M3eCard } from "@m3e/react/card";
+import { M3eTheme } from "@m3e/react/theme";
 import React from "react";
 
+import { Layout } from "#/Layout";
 import { fetchApi } from "#/lib/api";
 
 // oxlint-disable-next-line import/no-unassigned-import
-import "#/main.css";
+import "#/style.css";
 
 // oxlint-disable-next-line unicorn/prefer-top-level-await
 const greeting = (async (): Promise<string> => {
@@ -18,8 +21,19 @@ function Greeting(): React.ReactNode {
 
 export function App(): React.ReactNode {
 	return (
-		<React.Suspense>
-			<Greeting></Greeting>
-		</React.Suspense>
+		<M3eTheme
+			color="#FBBC04"
+			variant="expressive"
+		>
+			<Layout>
+				<React.Suspense>
+					<M3eCard variant="outlined">
+						<div slot="content">
+							<Greeting />
+						</div>
+					</M3eCard>
+				</React.Suspense>
+			</Layout>
+		</M3eTheme>
 	);
 }
