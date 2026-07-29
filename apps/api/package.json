@@ -8,8 +8,8 @@
 		]
 	},
 	"scripts": {
-		"dev": "node --watch --watch-preserve-output src/index.ts",
-		"preview": "node src/index.ts"
+		"dev": "vp exec node --env-file=../../.env --watch --watch-preserve-output src/index.ts",
+		"preview": "vp exec node --env-file=../../.env src/index.ts"
 	},
 	"dependencies": {
 		"cors": "^2.8.6",

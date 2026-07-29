@@ -4,8 +4,9 @@
 	"type": "module",
 	"imports": {
 		"#/*": [
-			"./src/*.tsx",
-			"./src/*.ts"
+			"./src/*",
+			"./src/*.ts",
+			"./src/*.tsx"
 		]
 	},
 	"scripts": {

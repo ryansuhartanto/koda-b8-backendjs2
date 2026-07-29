@@ -1,11 +1,13 @@
 import React from "react";
 
+import { fetchApi } from "#/lib/api";
+
 // oxlint-disable-next-line import/no-unassigned-import
 import "#/main.css";
 
 // oxlint-disable-next-line unicorn/prefer-top-level-await
 const greeting = (async (): Promise<string> => {
-	const req = await fetch("http://localhost:3000/");
+	const req = await fetchApi("/");
 	return req.text();
 })();
 
