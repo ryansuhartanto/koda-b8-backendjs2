@@ -10,6 +10,15 @@ export default defineConfig({
 	fmt: {
 		...oxfmt,
 		ignorePatterns: ["aube-lock.yaml"],
+
+		overrides: [
+			{
+				files: ["*.css"],
+				options: {
+					printWidth: 320,
+				},
+			},
+		],
 	},
 	lint: {
 		extends: [oxlint],
@@ -32,6 +41,8 @@ export default defineConfig({
 			],
 		},
 
+		ignorePatterns: ["apps/web/src/components/ui"],
+
 		overrides: pkg.workspaces
 			.flatMap((glob) => globSync(glob))
 			.map((dir) => ({
@@ -39,7 +50,11 @@ export default defineConfig({
 				rules: {
 					"no-relative-import-paths/no-relative-import-paths": [
 						"warn",
-						{ allowSameFolder: false, rootDir: `${dir}/src`, prefix: "#" },
+						{
+							allowSameFolder: false,
+							rootDir: `${dir}/src`,
+							prefix: "#",
+						},
 					],
 				},
 			})),
