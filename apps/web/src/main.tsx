@@ -2,25 +2,31 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
-import { App } from "#/App";
 import { Auth } from "#/Auth";
-import { Layout } from "#/Layout";
+import LayoutApp from "#/pages/+Layout";
+
+// oxlint-disable-next-line import/no-unassigned-import
+import "#/style.css";
 
 const root = document.querySelector("#app")!;
 root.removeAttribute("hidden");
 
 const router = createBrowserRouter([
 	{
+		path: "auth",
+		Component: Auth,
+	},
+	{
 		path: "/",
-		Component: Layout,
+		Component: LayoutApp,
 		children: [
 			{
 				index: true,
-				Component: App,
+				Component: React.lazy(async () => import("#/pages/index")),
 			},
 			{
-				path: "auth",
-				Component: Auth,
+				path: "*",
+				Component: React.lazy(async () => import("#/pages/index")),
 			},
 		],
 	},
