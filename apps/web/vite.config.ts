@@ -13,8 +13,12 @@ export default defineConfig(({ mode }) => {
 		plugins: [react(), tailwindcss()],
 
 		server: {
+			host: true,
 			port: Number(env["WEB_PORT"] ?? "5173"),
 			strictPort: true,
+		},
+		preview: {
+			port: Number(env["WEB_PORT"] ?? "4173"),
 		},
 	};
 });

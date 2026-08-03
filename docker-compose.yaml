@@ -1,0 +1,19 @@
+services:
+  api:
+    image: backendjs2/api:latest
+    build:
+      context: .
+      target: api
+    ports:
+      - "3000:${API_PORT}"
+    expose:
+      - "${API_PORT}"
+  web:
+    image: backendjs2/web:latest
+    build:
+      context: .
+      target: web
+    ports:
+      - "4173:${WEB_PORT}"
+    expose:
+      - "${WEB_PORT}"
