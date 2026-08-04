@@ -16,7 +16,7 @@ export async function apiCall<T>(
 	init?: RequestInit,
 ): Promise<T> {
 	const headers = new Headers(init?.headers);
-	headers.set("authorization", token);
+	headers.set("authorization", `Bearer ${token}`);
 	const res = await fetchApi(input, { ...init, headers });
 	if (!res.ok) {
 		const { error } = (await res.json()) as { error: string };

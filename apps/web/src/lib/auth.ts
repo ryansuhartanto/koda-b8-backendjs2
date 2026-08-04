@@ -1,14 +1,16 @@
 export type User = { id: number; name: string; email: string };
 
-export function getUser(): User | undefined {
-	const raw = localStorage.getItem("user");
-	return raw ? (JSON.parse(raw) as User) : undefined;
+export type Session = { token: string; user: User };
+
+export function getSession(): Session | undefined {
+	const raw = localStorage.getItem("session");
+	return raw ? (JSON.parse(raw) as Session) : undefined;
 }
 
-export function setUser(user: User): void {
-	localStorage.setItem("user", JSON.stringify(user));
+export function setSession(session: Session): void {
+	localStorage.setItem("session", JSON.stringify(session));
 }
 
-export function clearUser(): void {
-	localStorage.removeItem("user");
+export function clearSession(): void {
+	localStorage.removeItem("session");
 }

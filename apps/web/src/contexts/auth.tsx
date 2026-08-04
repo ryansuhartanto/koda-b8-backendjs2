@@ -1,11 +1,12 @@
 import React from "react";
 
 import { fetchApi } from "#/lib/api";
-import { clearUser, getUser, setUser } from "#/lib/auth";
-import type { User } from "#/lib/auth";
+import { clearSession, getSession, setSession } from "#/lib/auth";
+import type { Session, User } from "#/lib/auth";
 
 type AuthContext = {
 	user: User | undefined;
+	token: string | undefined;
 	login: (email: string, password: string) => Promise<string | undefined>;
 	register: (
 		name: string,
@@ -22,54 +23,59 @@ export function AuthProvider({
 }: {
 	children: React.ReactNode;
 }): React.ReactElement {
-	const [user, setUserState] = React.useState<User | undefined>(getUser);
+	const [session, setSessionState] = React.useState<Session | undefined>(
+		getSession,
+	);
 
-	const login = async (
-		email: string,
-		password: string,
+	const authenticate = async (
+		path: string,
+		body: Record<string, string>,
 	): Promise<string | undefined> => {
-		const res = await fetchApi("/auth/login", {
+		const res = await fetchApi(path, {
 			method: "POST",
 			headers: { "content-type": "application/x-www-form-urlencoded" },
-			body: new URLSearchParams({ email, password }).toString(),
+			body: new URLSearchParams(body).toString(),
 		});
+
 		if (!res.ok) {
 			const { error } = (await res.json()) as { error: string };
 			return error;
 		}
-		const u = (await res.json()) as User;
-		setUser(u);
-		setUserState(u);
+
+		const created = (await res.json()) as Session;
+		setSession(created);
+		setSessionState(created);
 		return undefined;
 	};
+
+	const login = async (
+		email: string,
+		password: string,
+	): Promise<string | undefined> =>
+		authenticate("/auth/login", { email, password });
 
 	const register = async (
 		name: string,
 		email: string,
 		password: string,
-	): Promise<string | undefined> => {
-		const res = await fetchApi("/auth/register", {
-			method: "POST",
-			headers: { "content-type": "application/x-www-form-urlencoded" },
-			body: new URLSearchParams({ name, email, password }).toString(),
-		});
-		if (!res.ok) {
-			const { error } = (await res.json()) as { error: string };
-			return error;
-		}
-		const u = (await res.json()) as User;
-		setUser(u);
-		setUserState(u);
-		return undefined;
-	};
+	): Promise<string | undefined> =>
+		authenticate("/auth/register", { name, email, password });
 
 	const logout = (): void => {
-		clearUser();
-		setUserState(undefined);
+		clearSession();
+		setSessionState(undefined);
 	};
 
 	return (
-		<Ctx.Provider value={{ user, login, register, logout }}>
+		<Ctx.Provider
+			value={{
+				user: session?.user,
+				token: session?.token,
+				login,
+				register,
+				logout,
+			}}
+		>
 			{children}
 		</Ctx.Provider>
 	);

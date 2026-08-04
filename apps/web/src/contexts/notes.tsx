@@ -22,12 +22,12 @@ export function NotesProvider({
 }: {
 	children: React.ReactNode;
 }): React.ReactElement {
-	const { user } = useAuth();
+	const { user, token } = useAuth();
 	const [notes, setNotes] = React.useState<Note[]>([]);
 	const [createOpen, setCreateOpen] = React.useState(false);
 
 	const fetchNotes = async (): Promise<void> => {
-		const data = await apiCall<Note[]>("hello", `/notes?id-user=${user!.id}`);
+		const data = await apiCall<Note[]>(token!, "/notes");
 		setNotes(data);
 	};
 
@@ -36,10 +36,10 @@ export function NotesProvider({
 	}, [user?.id]);
 
 	const createNote = async (title: string, body: string): Promise<Note> => {
-		const note = await apiCall<Note>("hello", "/notes", {
+		const note = await apiCall<Note>(token!, "/notes", {
 			method: "POST",
 			headers: { "content-type": "application/json" },
-			body: JSON.stringify({ "id-user": user!.id, title, body }),
+			body: JSON.stringify({ title, body }),
 		});
 		setNotes((prev) => [...prev, note]);
 		return note;
@@ -50,7 +50,7 @@ export function NotesProvider({
 		title: string,
 		body: string,
 	): Promise<Note> => {
-		const note = await apiCall<Note>("hello", `/notes/${id}`, {
+		const note = await apiCall<Note>(token!, `/notes/${id}`, {
 			method: "PATCH",
 			headers: { "content-type": "application/json" },
 			body: JSON.stringify({ title, body }),
@@ -60,7 +60,7 @@ export function NotesProvider({
 	};
 
 	const removeNote = (id: number): void => {
-		void apiCall("hello", `/notes/${id}`, { method: "DELETE" });
+		void apiCall(token!, `/notes/${id}`, { method: "DELETE" });
 		setNotes((prev) => prev.filter((n) => n.id !== id));
 	};
 
