@@ -17,7 +17,6 @@ import {
 	List,
 	ListOrdered,
 	Pilcrow,
-	Pin,
 	RemoveFormatting,
 	Strikethrough,
 	TextQuote,
@@ -26,20 +25,19 @@ import {
 import React from "react";
 
 import {
-	AlertDialogTitle,
+	AlertDialog,
+	AlertDialogClose,
 	AlertDialogDescription,
 	AlertDialogFooter,
-	AlertDialogClose,
-	AlertDialog,
 	AlertDialogHeader,
 	AlertDialogPopup,
+	AlertDialogTitle,
 } from "#/components/ui/alert-dialog";
 import { Button } from "#/components/ui/button";
 import {
 	Card,
 	CardAction,
 	CardFrame,
-	CardFrameFooter,
 	CardHeader,
 	CardPanel,
 	CardTitle,
@@ -56,7 +54,6 @@ import {
 	Menu,
 	MenuItem,
 	MenuPopup,
-	MenuSeparator,
 	MenuShortcut,
 	MenuTrigger,
 } from "#/components/ui/menu";
@@ -74,26 +71,21 @@ import {
 	ToolbarGroup,
 	ToolbarSeparator,
 } from "#/components/ui/toolbar";
+import { useNotes } from "#/contexts/notes";
 import type { Note } from "#/lib/notes";
-import { NOTES } from "#/lib/notes";
 import { useTitle } from "#/pages/+Layout";
-
-function pinNote(id: string): void {
-	console.log(`pin${id}`);
-}
-
-function deleteNote(id: string): void {
-	console.log(`delete${id}`);
-}
 
 function NoteDialog({
 	note,
 	getDirty,
+	onSave,
 }: {
-	note: Note;
+	note?: Note;
 	getDirty: React.RefObject<() => boolean>;
+	onSave: (title: string, body: string) => Promise<void>;
 }): React.ReactNode {
 	const titleRef = React.useRef<HTMLInputElement>(null);
+	const [saving, setSaving] = React.useState(false);
 
 	const editor = useEditor({
 		extensions: [StarterKit, Markdown],
@@ -102,7 +94,7 @@ function NoteDialog({
 				class: "size-full min-h-48 prose focus:outline-none",
 			},
 		},
-		content: note.excerpt,
+		content: note?.body ?? "",
 		contentType: "markdown",
 		autofocus: true,
 	});
@@ -112,9 +104,18 @@ function NoteDialog({
 			return;
 		}
 		getDirty.current = () =>
-			titleRef.current?.value.trim() !== note.title.trim() ||
-			editor.getMarkdown() !== note.excerpt;
+			titleRef.current?.value.trim() !== (note?.title ?? "").trim() ||
+			editor.getMarkdown() !== (note?.body ?? "");
 	}, [editor, getDirty, note]);
+
+	const handleSave = async (): Promise<void> => {
+		if (!editor || !titleRef.current?.value.trim()) {
+			return;
+		}
+		setSaving(true);
+		await onSave(titleRef.current.value.trim(), editor.getMarkdown());
+		setSaving(false);
+	};
 
 	return (
 		<>
@@ -123,7 +124,8 @@ function NoteDialog({
 					render={
 						<input
 							ref={titleRef}
-							defaultValue={note.title}
+							defaultValue={note?.title ?? ""}
+							placeholder="Title"
 							type="text"
 							className="focus:outline-none"
 						/>
@@ -135,9 +137,18 @@ function NoteDialog({
 			</DialogPanel>
 			<DialogFooter
 				variant="bare"
-				className="flex-row justify-start sm:justify-start"
+				className="flex-row items-center justify-between sm:justify-between gap-2"
 			>
-				<EditorToolbar editor={editor} />
+				{editor && <EditorToolbar editor={editor} />}
+				<Button
+					size="sm"
+					loading={saving}
+					onClick={() => {
+						void handleSave();
+					}}
+				>
+					Save
+				</Button>
 			</DialogFooter>
 		</>
 	);
@@ -147,7 +158,6 @@ function EditorToolbar({ editor }: { editor: Editor }): React.ReactNode {
 	const editorState = useEditorState({
 		editor,
 		selector: (ctx) => ({
-			// Text formatting
 			isBold: ctx.editor.isActive("bold") ?? false,
 			canBold: ctx.editor.can().chain().toggleBold().run() ?? false,
 			isItalic: ctx.editor.isActive("italic") ?? false,
@@ -157,8 +167,6 @@ function EditorToolbar({ editor }: { editor: Editor }): React.ReactNode {
 			isCode: ctx.editor.isActive("code") ?? false,
 			canCode: ctx.editor.can().chain().toggleCode().run() ?? false,
 			canClearMarks: ctx.editor.can().chain().unsetAllMarks().run() ?? false,
-
-			// Block types
 			isParagraph: ctx.editor.isActive("paragraph") ?? false,
 			isHeading1: ctx.editor.isActive("heading", { level: 1 }) ?? false,
 			isHeading2: ctx.editor.isActive("heading", { level: 2 }) ?? false,
@@ -166,16 +174,10 @@ function EditorToolbar({ editor }: { editor: Editor }): React.ReactNode {
 			isHeading4: ctx.editor.isActive("heading", { level: 4 }) ?? false,
 			isHeading5: ctx.editor.isActive("heading", { level: 5 }) ?? false,
 			isHeading6: ctx.editor.isActive("heading", { level: 6 }) ?? false,
-
-			// Lists and blocks
 			isBulletList: ctx.editor.isActive("bulletList") ?? false,
 			isOrderedList: ctx.editor.isActive("orderedList") ?? false,
 			isCodeBlock: ctx.editor.isActive("codeBlock") ?? false,
 			isBlockquote: ctx.editor.isActive("blockquote") ?? false,
-
-			// History
-			canUndo: ctx.editor.can().chain().undo().run() ?? false,
-			canRedo: ctx.editor.can().chain().redo().run() ?? false,
 		}),
 	});
 
@@ -200,17 +202,15 @@ function EditorToolbar({ editor }: { editor: Editor }): React.ReactNode {
 	const blockType = headingIndex !== -1 ? `h${headingIndex + 1}` : "paragraph";
 
 	type Format = "bold" | "italic" | "strike";
-
 	const formats = (
 		[
 			editorState.isBold && "bold",
 			editorState.isItalic && "italic",
 			editorState.isStrike && "strike",
 		] as const
-	).filter((format): format is Format => format !== false);
+	).filter((f): f is Format => f !== false);
 
 	type List = "bulletList" | "orderedList";
-
 	const list = (
 		[
 			editorState.isBulletList && "bulletList",
@@ -219,7 +219,6 @@ function EditorToolbar({ editor }: { editor: Editor }): React.ReactNode {
 	).filter((l): l is List => l !== false);
 
 	type Block = "codeBlock" | "blockquote";
-
 	const block = (
 		[
 			editorState.isCodeBlock && "codeBlock",
@@ -314,7 +313,6 @@ function EditorToolbar({ editor }: { editor: Editor }): React.ReactNode {
 					disabled={!editorState.canCode}
 					pressed={editorState.isCode}
 					variant="outline"
-
 					onPressedChange={() => {
 						editor.chain().focus().toggleCode().run();
 					}}
@@ -324,7 +322,6 @@ function EditorToolbar({ editor }: { editor: Editor }): React.ReactNode {
 				<Toggle
 					aria-label="Clear marks"
 					disabled={!editorState.canClearMarks}
-
 					onPressedChange={() => {
 						editor.chain().focus().unsetAllMarks().run();
 					}}
@@ -387,25 +384,34 @@ function EditorToolbar({ editor }: { editor: Editor }): React.ReactNode {
 	);
 }
 
-function NoteCard({ note }: { note: Note }): React.ReactNode {
+function NoteCard({
+	note,
+	onDelete,
+	onSave,
+}: {
+	note: Note;
+	onDelete: () => void;
+	onSave: (title: string, body: string) => Promise<void>;
+}): React.ReactNode {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
 	const [confirmOpen, setConfirmOpen] = React.useState(false);
 	const [menuOpen, setMenuOpen] = React.useState(false);
 	const getDirty = React.useRef<() => boolean>(() => false);
 
+	const handleSave = async (title: string, body: string): Promise<void> => {
+		await onSave(title, body);
+		setDialogOpen(false);
+	};
+
 	const handleKeyDown = (event: React.KeyboardEvent): void => {
 		if ((event.key === "Enter" || event.key === " ") && !menuOpen) {
 			setDialogOpen(true);
-		} else if (event.key === "p" && (event.metaKey || event.ctrlKey)) {
-			pinNote(note.id);
-			setMenuOpen(false);
 		} else if (event.key === "Backspace" && (event.metaKey || event.ctrlKey)) {
-			deleteNote(note.id);
+			onDelete();
 			setMenuOpen(false);
 		} else {
 			return;
 		}
-
 		event.preventDefault();
 	};
 
@@ -452,15 +458,9 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 									<EllipsisVertical />
 								</MenuTrigger>
 								<MenuPopup sideOffset={4}>
-									<MenuItem onClick={() => pinNote(note.id)}>
-										<Pin aria-hidden="true" />
-										Pin
-										<MenuShortcut>⌘P</MenuShortcut>
-									</MenuItem>
-									<MenuSeparator />
 									<MenuItem
 										variant="destructive"
-										onClick={() => deleteNote(note.id)}
+										onClick={onDelete}
 									>
 										<Trash2 aria-hidden="true" />
 										Delete
@@ -470,22 +470,14 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 							</Menu>
 						</CardAction>
 					</CardHeader>
-					<CardPanel>{note.excerpt}</CardPanel>
+					<CardPanel>{note.body}</CardPanel>
 				</Card>
-				<CardFrameFooter className="flex flex-row-reverse justify-between text-xs text-muted-foreground">
-					<span>{note.updated}</span>
-					{note.pinned && (
-						<Pin
-							aria-label="Pinned"
-							className="size-[1em]"
-						/>
-					)}
-				</CardFrameFooter>
 			</CardFrame>
 			<DialogPopup bottomStickOnMobile={false}>
 				<NoteDialog
 					note={note}
 					getDirty={getDirty}
+					onSave={handleSave}
 				/>
 			</DialogPopup>
 			<AlertDialog
@@ -520,24 +512,58 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 
 export default function Page(): React.ReactNode {
 	const title = useTitle();
+	const {
+		notes,
+		createOpen,
+		closeCreateNote,
+		createNote,
+		editNote,
+		removeNote,
+	} = useNotes();
+	const createDirty = React.useRef<() => boolean>(() => false);
+
+	const handleCreate = async (title: string, body: string): Promise<void> => {
+		await createNote(title, body);
+		closeCreateNote();
+	};
 
 	return (
 		<>
-			<div className="flex items-baseline justify-between">
+			<div className="flex items-center justify-between">
 				<h1 className="font-heading font-semibold text-xl">{title}</h1>
 				<span className="text-muted-foreground text-sm">
-					{NOTES.length} notes
+					{notes.length} notes
 				</span>
 			</div>
 
 			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-				{NOTES.map((note) => (
+				{notes.map((note) => (
 					<NoteCard
 						key={note.id}
 						note={note}
+						onDelete={() => removeNote(note.id)}
+						onSave={async (t, b) => {
+							await editNote(note.id, t, b);
+						}}
 					/>
 				))}
 			</div>
+
+			<Dialog
+				open={createOpen}
+				onOpenChange={(open) => {
+					if (!open) {
+						closeCreateNote();
+					}
+				}}
+			>
+				<DialogPopup bottomStickOnMobile={false}>
+					<NoteDialog
+						getDirty={createDirty}
+						onSave={handleCreate}
+					/>
+				</DialogPopup>
+			</Dialog>
 		</>
 	);
 }

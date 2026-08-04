@@ -5,7 +5,6 @@ import {
 	LogOut,
 	Search,
 	SquarePen,
-	Trash2,
 } from "lucide-react";
 import { Link, useLocation } from "react-router";
 
@@ -31,17 +30,17 @@ import {
 	SidebarMenuItem,
 	SidebarRail,
 } from "#/components/ui/sidebar";
+import { useAuth } from "#/contexts/auth";
+import { useNotes } from "#/contexts/notes";
 
 export type NavItem = {
 	title: string;
 	url: string;
 	icon: typeof FileText;
-	count?: number;
 };
 
 export const NAV_ITEMS: NavItem[] = [
-	{ count: 24, icon: FileText, title: "All notes", url: "/" },
-	{ icon: Trash2, title: "Trash", url: "/trash" },
+	{ icon: FileText, title: "All notes", url: "/" },
 ];
 
 export function AppSidebar({
@@ -50,6 +49,8 @@ export function AppSidebar({
 	onSearch: () => void;
 }): React.ReactNode {
 	const { pathname } = useLocation();
+	const { user, logout } = useAuth();
+	const { notes, openCreateNote } = useNotes();
 
 	return (
 		<Sidebar
@@ -77,7 +78,10 @@ export function AppSidebar({
 					</SidebarMenuItem>
 				</SidebarMenu>
 
-				<Button className="w-full group-data-[collapsible=icon]:hidden">
+				<Button
+					className="w-full group-data-[collapsible=icon]:hidden"
+					onClick={openCreateNote}
+				>
 					<SquarePen aria-hidden="true" />
 					New note
 				</Button>
@@ -112,8 +116,8 @@ export function AppSidebar({
 										<item.icon aria-hidden="true" />
 										<span>{item.title}</span>
 									</SidebarMenuButton>
-									{item.count !== undefined && (
-										<SidebarMenuBadge>{item.count}</SidebarMenuBadge>
+									{item.url === "/" && (
+										<SidebarMenuBadge>{notes.length}</SidebarMenuBadge>
 									)}
 								</SidebarMenuItem>
 							))}
@@ -133,12 +137,14 @@ export function AppSidebar({
 										tooltip="Account"
 									>
 										<Avatar className="size-8 rounded-lg">
-											<AvatarFallback className="rounded-lg">RS</AvatarFallback>
+											<AvatarFallback className="rounded-lg">
+												{user?.name.slice(0, 2).toUpperCase()}
+											</AvatarFallback>
 										</Avatar>
 										<div className="grid flex-1 text-left leading-tight">
-											<span className="truncate font-medium">Ryan</span>
+											<span className="truncate font-medium">{user?.name}</span>
 											<span className="truncate text-muted-foreground text-xs">
-												ryan@example.com
+												{user?.email}
 											</span>
 										</div>
 										<ChevronsUpDown className="ms-auto" />
@@ -151,8 +157,8 @@ export function AppSidebar({
 								side="top"
 							>
 								<MenuItem
-									render={<Link to="/auth" />}
 									variant="destructive"
+									onClick={logout}
 								>
 									<LogOut />
 									Log out

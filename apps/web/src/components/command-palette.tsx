@@ -6,6 +6,7 @@ import { NAV_ITEMS } from "#/components/app-sidebar";
 import {
 	Command,
 	CommandCollection,
+	CommandDescription,
 	CommandDialog,
 	CommandDialogPopup,
 	CommandEmpty,
@@ -16,14 +17,15 @@ import {
 	CommandList,
 	CommandPanel,
 } from "#/components/ui/command";
-import { NOTES } from "#/lib/notes";
+import { useNotes } from "#/contexts/notes";
 
-// Autocomplete filters object items on their `value` property, so `value` holds
-// the display text rather than a slug.
 type CommandEntry = {
+	id?: number;
 	icon?: typeof FileText;
 	url: string;
+	label: string;
 	value: string;
+	body?: string;
 };
 
 type CommandEntryGroup = {
@@ -31,23 +33,15 @@ type CommandEntryGroup = {
 	value: string;
 };
 
-const GROUPS: CommandEntryGroup[] = [
-	{
-		items: NAV_ITEMS.map((item) => ({
-			icon: item.icon,
-			url: item.url,
-			value: item.title,
-		})),
-		value: "Pages",
-	},
-	{
-		items: NOTES.map((note) => ({
-			url: `/note/${note.id}`,
-			value: note.title,
-		})),
-		value: "Notes",
-	},
-];
+const PAGES_GROUP: CommandEntryGroup = {
+	items: NAV_ITEMS.map((item) => ({
+		icon: item.icon,
+		url: item.url,
+		label: item.title,
+		value: item.title,
+	})),
+	value: "Pages",
+};
 
 const COMMAND_PALETTE_SHORTCUT = "k";
 
@@ -59,6 +53,21 @@ export function CommandPalette({
 	onOpenChange: (open: boolean) => void;
 }): React.ReactNode {
 	const navigate = useNavigate();
+	const { notes } = useNotes();
+
+	const groups: CommandEntryGroup[] = [
+		PAGES_GROUP,
+		{
+			items: notes.map((note) => ({
+				id: note.id,
+				url: "/",
+				label: note.title,
+				value: `${note.title} ${note.body}`,
+				body: note.body,
+			})),
+			value: "Notes",
+		},
+	];
 
 	React.useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent): void => {
@@ -81,7 +90,10 @@ export function CommandPalette({
 			open={open}
 		>
 			<CommandDialogPopup aria-label="Command palette">
-				<Command items={GROUPS}>
+				<Command
+					items={groups}
+					itemToStringValue={(item) => (item as CommandEntry).value}
+				>
 					<CommandInput
 						aria-label="Search notes and pages"
 						placeholder="Search notes and pages"
@@ -98,8 +110,7 @@ export function CommandPalette({
 									<CommandCollection>
 										{(item: CommandEntry) => (
 											<CommandItem
-												className="gap-2"
-												key={item.url}
+												key={item.id ?? item.value}
 												onClick={() => {
 													onOpenChange(false);
 													void navigate(item.url);
@@ -109,7 +120,10 @@ export function CommandPalette({
 												{item.icon && (
 													<item.icon className="size-4 shrink-0 text-muted-foreground" />
 												)}
-												<span className="truncate">{item.value}</span>
+												<span className="truncate">{item.label}</span>
+												{item.body && (
+													<CommandDescription>{item.body}</CommandDescription>
+												)}
 											</CommandItem>
 										)}
 									</CommandCollection>

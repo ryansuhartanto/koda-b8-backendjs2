@@ -1,6 +1,6 @@
 import { SquarePen } from "lucide-react";
 import React from "react";
-import { Outlet, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 
 import { AppSidebar, NAV_ITEMS } from "#/components/app-sidebar";
 import { CommandPalette } from "#/components/command-palette";
@@ -18,6 +18,8 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "#/components/ui/sidebar";
+import { useAuth } from "#/contexts/auth";
+import { NotesProvider, useNotes } from "#/contexts/notes";
 
 export function useTitle(): string {
 	const { pathname } = useLocation();
@@ -34,8 +36,9 @@ export function useTitle(): string {
 	return "Notes";
 }
 
-export default function Layout(): React.ReactNode {
+function LayoutInner(): React.ReactNode {
 	const title = useTitle();
+	const { openCreateNote } = useNotes();
 	const [searchOpen, setSearchOpen] = React.useState(false);
 
 	return (
@@ -61,12 +64,13 @@ export default function Layout(): React.ReactNode {
 							</BreadcrumbItem>
 						</BreadcrumbList>
 					</Breadcrumb>
-					<div className="ms-auto flex items-center gap-2">
+					<div className="ms-auto">
 						<Button
 							size="sm"
 							variant="outline"
+							onClick={openCreateNote}
 						>
-							<SquarePen />
+							<SquarePen aria-hidden="true" />
 							<span className="max-sm:hidden">New note</span>
 						</Button>
 					</div>
@@ -76,5 +80,22 @@ export default function Layout(): React.ReactNode {
 				</div>
 			</SidebarInset>
 		</SidebarProvider>
+	);
+}
+
+export default function Layout(): React.ReactNode {
+	const { user } = useAuth();
+	if (!user) {
+		return (
+			<Navigate
+				to="/auth"
+				replace
+			/>
+		);
+	}
+	return (
+		<NotesProvider>
+			<LayoutInner />
+		</NotesProvider>
 	);
 }

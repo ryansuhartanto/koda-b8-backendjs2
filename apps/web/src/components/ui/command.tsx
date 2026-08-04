@@ -209,8 +209,21 @@ export function CommandItem({
 }: React.ComponentProps<typeof AutocompleteItem>): React.ReactElement {
 	return (
 		<AutocompleteItem
-			className={cn("py-1.5", className)}
+			className={cn("flex-wrap gap-2 py-1.5", className)}
 			data-slot="command-item"
+			{...props}
+		/>
+	);
+}
+
+export function CommandDescription({
+	className,
+	...props
+}: React.ComponentProps<"span">): React.ReactElement {
+	return (
+		<span
+			className={cn("w-full truncate text-muted-foreground text-xs", className)}
+			data-slot="command-description"
 			{...props}
 		/>
 	);
