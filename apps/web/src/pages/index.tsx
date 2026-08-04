@@ -87,7 +87,15 @@ function deleteNote(id: string): void {
 	console.log(`delete${id}`);
 }
 
-function NoteDialog({ note }: { note: Note }): React.ReactNode {
+function NoteDialog({
+	note,
+	getDirty,
+}: {
+	note: Note;
+	getDirty: React.RefObject<() => boolean>;
+}): React.ReactNode {
+	const titleRef = React.useRef<HTMLInputElement>(null);
+
 	const editor = useEditor({
 		extensions: [StarterKit, Markdown],
 		editorProps: {
@@ -96,8 +104,18 @@ function NoteDialog({ note }: { note: Note }): React.ReactNode {
 			},
 		},
 		content: note.excerpt,
+		contentType: "markdown",
 		autofocus: true,
 	});
+
+	React.useEffect(() => {
+		if (!editor) {
+			return;
+		}
+		getDirty.current = () =>
+			titleRef.current?.value.trim() !== note.title.trim() ||
+			editor.getMarkdown() !== note.excerpt;
+	}, [editor, getDirty, note]);
 
 	return (
 		<>
@@ -105,6 +123,7 @@ function NoteDialog({ note }: { note: Note }): React.ReactNode {
 				<DialogTitle
 					render={
 						<input
+							ref={titleRef}
 							defaultValue={note.title}
 							type="text"
 							className="focus:outline-none"
@@ -373,6 +392,7 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
 	const [confirmOpen, setConfirmOpen] = React.useState(false);
 	const [menuOpen, setMenuOpen] = React.useState(false);
+	const getDirty = React.useRef<() => boolean>(() => false);
 
 	const handled = React.useRef<Event>(undefined);
 
@@ -409,7 +429,13 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 
 	return (
 		<Dialog
-			onOpenChange={setDialogOpen}
+			onOpenChange={(open) => {
+				if (!open && getDirty.current()) {
+					setConfirmOpen(true);
+				} else {
+					setDialogOpen(open);
+				}
+			}}
 			open={dialogOpen}
 		>
 			<DialogTrigger
@@ -477,7 +503,10 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 				</CardFrameFooter>
 			</DialogTrigger>
 			<DialogPopup bottomStickOnMobile={false}>
-				<NoteDialog note={note} />
+				<NoteDialog
+					note={note}
+					getDirty={getDirty}
+				/>
 			</DialogPopup>
 			<AlertDialog
 				onOpenChange={setConfirmOpen}
