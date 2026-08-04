@@ -1,4 +1,6 @@
-import { EllipsisVertical, Pin, Trash2 } from "lucide-react";
+import { EditorContent, useEditor } from "@tiptap/react";
+import { StarterKit } from "@tiptap/starter-kit";
+import { EllipsisVertical, Pin, Trash2, X } from "lucide-react";
 import React from "react";
 
 import {
@@ -28,10 +30,6 @@ function deleteNote(id: string): void {
 	console.log(`delete${id}`);
 }
 
-function openNote(id: string): void {
-	console.log(`open${id}`);
-}
-
 // The trigger sits inside the card and its popup is portaled, so both reach the
 // card's own handlers.
 function isFromMenu(event: React.SyntheticEvent): boolean {
@@ -42,7 +40,86 @@ function isFromMenu(event: React.SyntheticEvent): boolean {
 	);
 }
 
-function NoteCard({ note }: { note: Note }): React.ReactNode {
+function NoteOverlay({
+	note,
+	onClose,
+}: {
+	note: Note;
+	onClose: () => void;
+}): React.ReactNode {
+	const [visible, setVisible] = React.useState(false);
+
+	React.useEffect(() => {
+		requestAnimationFrame(() => setVisible(true));
+	}, []);
+
+	const editor = useEditor({
+		extensions: [StarterKit],
+		content: `<p>${note.excerpt}</p>`,
+	});
+
+	const handleClose = (): void => {
+		setVisible(false);
+		setTimeout(onClose, 200);
+	};
+
+	React.useEffect(() => {
+		const onKey = (e: KeyboardEvent): void => {
+			if (e.key === "Escape") {
+				handleClose();
+			}
+		};
+		document.addEventListener("keydown", onKey);
+		return () => document.removeEventListener("keydown", onKey);
+	}, []);
+
+	return (
+		<div
+			aria-modal="true"
+			className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-[background-color] duration-200 ${visible ? "bg-black/60" : "bg-black/0"}`}
+			role="dialog"
+			onClick={(e) => {
+				if (e.target === e.currentTarget) {
+					handleClose();
+				}
+			}}
+		>
+			<div
+				className={`w-full max-w-2xl transition-[opacity,transform] duration-200 ${visible ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
+			>
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center justify-between">
+							<span>{note.title}</span>
+							<button
+								aria-label="Close"
+								className="text-muted-foreground transition-colors hover:text-foreground"
+								type="button"
+								onClick={handleClose}
+							>
+								<X className="size-4" />
+							</button>
+						</CardTitle>
+					</CardHeader>
+					<div className="px-6 pb-6">
+						<EditorContent
+							className="prose prose-sm dark:prose-invert max-w-none min-h-48 focus-within:[&_.tiptap]:outline-none"
+							editor={editor}
+						/>
+					</div>
+				</Card>
+			</div>
+		</div>
+	);
+}
+
+function NoteCard({
+	note,
+	onOpen,
+}: {
+	note: Note;
+	onOpen: (note: Note) => void;
+}): React.ReactNode {
 	const [menuOpen, setMenuOpen] = React.useState(false);
 	const triggerRef = React.useRef<HTMLButtonElement>(null);
 	const handled = React.useRef<Event>(undefined);
@@ -68,7 +145,7 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 		}
 
 		if ((event.key === "Enter" || event.key === " ") && !menuOpen) {
-			openNote(note.id);
+			onOpen(note);
 		} else if (event.key === "p" && (event.metaKey || event.ctrlKey)) {
 			pinNote(note.id);
 			setMenuOpen(false);
@@ -85,12 +162,13 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 	return (
 		<Card
 			className="cursor-pointer transition-colors hover:border-ring/40"
+			tabIndex={0}
 			onClick={(event) => {
 				if (isFromMenu(event) || isDuplicate(event)) {
 					return;
 				}
 
-				openNote(note.id);
+				onOpen(note);
 			}}
 			onContextMenu={(event) => {
 				if (isFromMenu(event) || isDuplicate(event)) {
@@ -101,14 +179,13 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 				openMenu();
 			}}
 			onKeyDown={handleKeyDown}
-			tabIndex={0}
 		>
 			<CardHeader>
 				<CardTitle className="flex justify-between">
 					<span>{note.title}</span>
 					<Menu
-						onOpenChange={setMenuOpen}
 						open={menuOpen}
+						onOpenChange={setMenuOpen}
 					>
 						<MenuTrigger
 							aria-label="Note options"
@@ -125,8 +202,8 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 							</MenuItem>
 							<MenuSeparator />
 							<MenuItem
-								onClick={() => deleteNote(note.id)}
 								variant="destructive"
+								onClick={() => deleteNote(note.id)}
 							>
 								<Trash2 aria-hidden="true" />
 								Delete
@@ -151,6 +228,7 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 
 export default function Page(): React.ReactNode {
 	const title = useTitle();
+	const [activeNote, setActiveNote] = React.useState<Note>();
 
 	return (
 		<>
@@ -166,9 +244,17 @@ export default function Page(): React.ReactNode {
 					<NoteCard
 						key={note.id}
 						note={note}
+						onOpen={setActiveNote}
 					/>
 				))}
 			</div>
+
+			{activeNote && (
+				<NoteOverlay
+					note={activeNote}
+					onClose={() => setActiveNote(undefined)}
+				/>
+			)}
 		</>
 	);
 }
