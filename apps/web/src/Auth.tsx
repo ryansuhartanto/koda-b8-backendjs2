@@ -2,16 +2,22 @@ import React from "react";
 import { useNavigate } from "react-router";
 
 import { Button } from "#/components/ui/button";
-import { Field, FieldControl, FieldLabel } from "#/components/ui/field";
+import {
+	Field,
+	FieldControl,
+	FieldError,
+	FieldLabel,
+} from "#/components/ui/field";
 import { Fieldset, FieldsetLegend } from "#/components/ui/fieldset";
 import { Input } from "#/components/ui/input";
 import { useAuth } from "#/contexts/auth";
+import type { ApiError } from "#/lib/api";
 
 export function Auth(): React.ReactNode {
 	const navigate = useNavigate();
 	const { login, register } = useAuth();
 	const [mode, setMode] = React.useState<"login" | "register">("login");
-	const [error, setError] = React.useState("");
+	const [error, setError] = React.useState<ApiError>();
 	const [loading, setLoading] = React.useState(false);
 	const nameRef = React.useRef<HTMLInputElement>(null);
 	const emailRef = React.useRef<HTMLInputElement>(null);
@@ -21,7 +27,7 @@ export function Auth(): React.ReactNode {
 		e: React.SyntheticEvent<HTMLFormElement>,
 	): Promise<void> => {
 		e.preventDefault();
-		setError("");
+		setError(undefined);
 		setLoading(true);
 
 		const err =
@@ -45,8 +51,10 @@ export function Auth(): React.ReactNode {
 
 	const toggleMode = (): void => {
 		setMode((m) => (m === "login" ? "register" : "login"));
-		setError("");
+		setError(undefined);
 	};
+
+	const invalid = (field: string): boolean => error?.field === field;
 
 	return (
 		<div className="flex min-h-dvh items-center justify-center p-4">
@@ -62,7 +70,7 @@ export function Auth(): React.ReactNode {
 					</FieldsetLegend>
 
 					{mode === "register" && (
-						<Field>
+						<Field invalid={invalid("name")}>
 							<FieldLabel>Name</FieldLabel>
 							<FieldControl
 								render={
@@ -74,10 +82,11 @@ export function Auth(): React.ReactNode {
 									/>
 								}
 							/>
+							<FieldError match={invalid("name")}>{error?.error}</FieldError>
 						</Field>
 					)}
 
-					<Field>
+					<Field invalid={invalid("email")}>
 						<FieldLabel>Email</FieldLabel>
 						<FieldControl
 							render={
@@ -89,9 +98,10 @@ export function Auth(): React.ReactNode {
 								/>
 							}
 						/>
+						<FieldError match={invalid("email")}>{error?.error}</FieldError>
 					</Field>
 
-					<Field>
+					<Field invalid={invalid("password")}>
 						<FieldLabel>Password</FieldLabel>
 						<FieldControl
 							render={
@@ -105,10 +115,14 @@ export function Auth(): React.ReactNode {
 								/>
 							}
 						/>
-						{error && (
-							<p className="text-destructive-foreground text-xs">{error}</p>
-						)}
+						<FieldError match={invalid("password")}>{error?.error}</FieldError>
 					</Field>
+
+					{error && !error.field && (
+						<Field invalid>
+							<FieldError match>{error.error}</FieldError>
+						</Field>
+					)}
 				</Fieldset>
 
 				<Button

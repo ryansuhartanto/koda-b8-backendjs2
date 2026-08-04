@@ -1,18 +1,19 @@
 import React from "react";
 
 import { fetchApi } from "#/lib/api";
+import type { ApiError } from "#/lib/api";
 import { clearSession, getSession, setSession } from "#/lib/auth";
 import type { Session, User } from "#/lib/auth";
 
 type AuthContext = {
 	user: User | undefined;
 	token: string | undefined;
-	login: (email: string, password: string) => Promise<string | undefined>;
+	login: (email: string, password: string) => Promise<ApiError | undefined>;
 	register: (
 		name: string,
 		email: string,
 		password: string,
-	) => Promise<string | undefined>;
+	) => Promise<ApiError | undefined>;
 	logout: () => void;
 };
 
@@ -30,7 +31,7 @@ export function AuthProvider({
 	const authenticate = async (
 		path: string,
 		body: Record<string, string>,
-	): Promise<string | undefined> => {
+	): Promise<ApiError | undefined> => {
 		const res = await fetchApi(path, {
 			method: "POST",
 			headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -38,8 +39,7 @@ export function AuthProvider({
 		});
 
 		if (!res.ok) {
-			const { error } = (await res.json()) as { error: string };
-			return error;
+			return (await res.json()) as ApiError;
 		}
 
 		const created = (await res.json()) as Session;
@@ -51,14 +51,14 @@ export function AuthProvider({
 	const login = async (
 		email: string,
 		password: string,
-	): Promise<string | undefined> =>
+	): Promise<ApiError | undefined> =>
 		authenticate("/auth/login", { email, password });
 
 	const register = async (
 		name: string,
 		email: string,
 		password: string,
-	): Promise<string | undefined> =>
+	): Promise<ApiError | undefined> =>
 		authenticate("/auth/register", { name, email, password });
 
 	const logout = (): void => {
