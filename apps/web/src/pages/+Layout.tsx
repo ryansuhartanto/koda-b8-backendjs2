@@ -1,7 +1,9 @@
-import { Ellipsis, SquarePen } from "lucide-react";
+import { SquarePen } from "lucide-react";
+import React from "react";
 import { Outlet, useLocation } from "react-router";
 
 import { AppSidebar, NAV_ITEMS } from "#/components/app-sidebar";
+import { CommandPalette } from "#/components/command-palette";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -34,10 +36,15 @@ export function useTitle(): string {
 
 export default function Layout(): React.ReactNode {
 	const title = useTitle();
+	const [searchOpen, setSearchOpen] = React.useState(false);
 
 	return (
 		<SidebarProvider>
-			<AppSidebar />
+			<AppSidebar onSearch={() => setSearchOpen(true)} />
+			<CommandPalette
+				onOpenChange={setSearchOpen}
+				open={searchOpen}
+			/>
 			<SidebarInset>
 				<header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur">
 					<SidebarTrigger className="-ms-1" />
@@ -61,13 +68,6 @@ export default function Layout(): React.ReactNode {
 						>
 							<SquarePen />
 							<span className="max-sm:hidden">New note</span>
-						</Button>
-						<Button
-							aria-label="More options"
-							size="icon"
-							variant="ghost"
-						>
-							<Ellipsis />
 						</Button>
 					</div>
 				</header>

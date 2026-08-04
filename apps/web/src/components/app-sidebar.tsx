@@ -1,14 +1,11 @@
 import {
 	ChevronsUpDown,
 	FileText,
+	Lightbulb,
 	LogOut,
-	NotebookPen,
 	Search,
-	Settings2,
 	SquarePen,
 	Trash2,
-	UserRound,
-	Lightbulb,
 } from "lucide-react";
 import { Link, useLocation } from "react-router";
 
@@ -47,7 +44,11 @@ export const NAV_ITEMS: NavItem[] = [
 	{ icon: Trash2, title: "Trash", url: "/trash" },
 ];
 
-export function AppSidebar(): React.ReactNode {
+export function AppSidebar({
+	onSearch,
+}: {
+	onSearch: () => void;
+}): React.ReactNode {
 	const { pathname } = useLocation();
 
 	return (
@@ -64,7 +65,10 @@ export function AppSidebar(): React.ReactNode {
 							tooltip="Notes"
 						>
 							<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-								<Lightbulb className="size-4" />
+								<Lightbulb
+									aria-hidden="true"
+									className="size-4"
+								/>
 							</div>
 							<div className="grid flex-1 text-left leading-tight">
 								<span className="truncate font-medium">Keep</span>
@@ -74,7 +78,7 @@ export function AppSidebar(): React.ReactNode {
 				</SidebarMenu>
 
 				<Button className="w-full group-data-[collapsible=icon]:hidden">
-					<SquarePen />
+					<SquarePen aria-hidden="true" />
 					New note
 				</Button>
 
@@ -84,7 +88,9 @@ export function AppSidebar(): React.ReactNode {
 					</InputGroupAddon>
 					<InputGroupInput
 						aria-label="Search notes"
+						onClick={onSearch}
 						placeholder="Search notes"
+						readOnly
 					/>
 					<InputGroupAddon align="inline-end">
 						<Kbd>⌘K</Kbd>
@@ -103,7 +109,7 @@ export function AppSidebar(): React.ReactNode {
 										render={<Link to={item.url} />}
 										tooltip={item.title}
 									>
-										<item.icon />
+										<item.icon aria-hidden="true" />
 										<span>{item.title}</span>
 									</SidebarMenuButton>
 									{item.count !== undefined && (
