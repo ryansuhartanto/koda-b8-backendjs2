@@ -1,7 +1,9 @@
 import http2 from "node:http2";
 
+import { compare, hash } from "bcryptjs";
 import type { RequestHandler } from "express";
 
+import * as Token from "#/lib/token";
 import * as User from "#/models/user.model";
 
 type authRequest = {
@@ -9,6 +11,23 @@ type authRequest = {
 	email: string;
 	password: string;
 };
+
+type sessionResponse = {
+	token: string;
+	user: Omit<User.User, "password">;
+};
+
+const cost = 10;
+
+// distinguishing a missing account from a wrong password is a user-enumeration oracle
+const invalidCredentials = "invalid email or password";
+
+function session(user: User.User): sessionResponse {
+	return {
+		token: Token.sign(user.id),
+		user: { id: user.id, name: user.name, email: user.email },
+	};
+}
 
 export const register: RequestHandler = async (req, res) => {
 	const { name, email, password } = req.body as Partial<authRequest>;
@@ -27,9 +46,13 @@ export const register: RequestHandler = async (req, res) => {
 		return;
 	}
 
-	res
-		.status(http2.constants.HTTP_STATUS_CREATED)
-		.json(await User.create({ name, email, password }));
+	const user = await User.create({
+		name,
+		email,
+		password: await hash(password, cost),
+	});
+
+	res.status(http2.constants.HTTP_STATUS_CREATED).json(session(user));
 };
 
 export const login: RequestHandler = async (req, res) => {
@@ -44,12 +67,12 @@ export const login: RequestHandler = async (req, res) => {
 
 	const user = await User.findByEmail(email);
 
-	if (!user || user.password !== password) {
+	if (!user || !(await compare(password, user.password))) {
 		res
 			.status(http2.constants.HTTP_STATUS_UNAUTHORIZED)
-			.json({ error: "email is not registered" });
+			.json({ error: invalidCredentials });
 		return;
 	}
 
-	res.json(user);
+	res.json(session(user));
 };
