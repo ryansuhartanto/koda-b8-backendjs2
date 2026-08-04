@@ -32,17 +32,31 @@ function session(user: User.User): sessionResponse {
 export const register: RequestHandler = async (req, res) => {
 	const { name, email, password } = req.body as Partial<authRequest>;
 
-	if (!name || !email || !password) {
+	if (!name) {
 		res
 			.status(http2.constants.HTTP_STATUS_BAD_REQUEST)
-			.json({ error: "name, email and password are required" });
+			.json({ error: "name is required", field: "name" });
+		return;
+	}
+
+	if (!email) {
+		res
+			.status(http2.constants.HTTP_STATUS_BAD_REQUEST)
+			.json({ error: "email is required", field: "email" });
+		return;
+	}
+
+	if (!password) {
+		res
+			.status(http2.constants.HTTP_STATUS_BAD_REQUEST)
+			.json({ error: "password is required", field: "password" });
 		return;
 	}
 
 	if (await User.findByEmail(email)) {
 		res
 			.status(http2.constants.HTTP_STATUS_CONFLICT)
-			.json({ error: "email already registered" });
+			.json({ error: "email already registered", field: "email" });
 		return;
 	}
 
@@ -58,10 +72,17 @@ export const register: RequestHandler = async (req, res) => {
 export const login: RequestHandler = async (req, res) => {
 	const { email, password } = req.body as Partial<authRequest>;
 
-	if (!email || !password) {
+	if (!email) {
 		res
 			.status(http2.constants.HTTP_STATUS_BAD_REQUEST)
-			.json({ error: "email and password are required" });
+			.json({ error: "email is required", field: "email" });
+		return;
+	}
+
+	if (!password) {
+		res
+			.status(http2.constants.HTTP_STATUS_BAD_REQUEST)
+			.json({ error: "password is required", field: "password" });
 		return;
 	}
 

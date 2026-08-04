@@ -44,7 +44,7 @@ export const patch: RequestHandler<idParams> = async (req, res) => {
 	if (owner && owner.id !== id) {
 		res
 			.status(http2.constants.HTTP_STATUS_CONFLICT)
-			.json({ error: "email already registered" });
+			.json({ error: "email already registered", field: "email" });
 		return;
 	}
 

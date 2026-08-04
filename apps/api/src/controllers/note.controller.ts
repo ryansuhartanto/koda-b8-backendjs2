@@ -44,7 +44,7 @@ export const post: RequestHandler = async (req, res) => {
 	if (!title) {
 		res
 			.status(http2.constants.HTTP_STATUS_BAD_REQUEST)
-			.json({ error: "title is required" });
+			.json({ error: "title is required", field: "title" });
 		return;
 	}
 
