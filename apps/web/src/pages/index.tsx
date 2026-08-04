@@ -410,11 +410,9 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 			return;
 		}
 
-		if ((event.key === "Enter" || event.key === " ") && menuOpen) {
-			return;
-		}
-
-		if (event.key === "p" && (event.metaKey || event.ctrlKey)) {
+		if ((event.key === "Enter" || event.key === " ") && !menuOpen) {
+			(event.currentTarget as HTMLElement).click();
+		} else if (event.key === "p" && (event.metaKey || event.ctrlKey)) {
 			pinNote(note.id);
 			setMenuOpen(false);
 		} else if (event.key === "Backspace" && (event.metaKey || event.ctrlKey)) {
@@ -441,7 +439,7 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 			<DialogTrigger
 				render={
 					<CardFrame
-						className="cursor-pointer"
+						className="cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background focus:outline-none"
 						onContextMenu={(event) => {
 							event.preventDefault();
 							setMenuOpen(true);
