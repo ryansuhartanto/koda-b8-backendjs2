@@ -51,7 +51,6 @@ import {
 	DialogPanel,
 	DialogPopup,
 	DialogTitle,
-	DialogTrigger,
 } from "#/components/ui/dialog";
 import {
 	Menu,
@@ -394,24 +393,9 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 	const [menuOpen, setMenuOpen] = React.useState(false);
 	const getDirty = React.useRef<() => boolean>(() => false);
 
-	const handled = React.useRef<Event>(undefined);
-
-	const isDuplicate = (event: React.SyntheticEvent): boolean => {
-		if (handled.current === event.nativeEvent) {
-			return true;
-		}
-
-		handled.current = event.nativeEvent;
-		return false;
-	};
-
 	const handleKeyDown = (event: React.KeyboardEvent): void => {
-		if (isDuplicate(event)) {
-			return;
-		}
-
 		if ((event.key === "Enter" || event.key === " ") && !menuOpen) {
-			(event.currentTarget as HTMLElement).click();
+			setDialogOpen(true);
 		} else if (event.key === "p" && (event.metaKey || event.ctrlKey)) {
 			pinNote(note.id);
 			setMenuOpen(false);
@@ -436,17 +420,15 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 			}}
 			open={dialogOpen}
 		>
-			<DialogTrigger
-				render={
-					<CardFrame
-						className="cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background focus:outline-none"
-						onContextMenu={(event) => {
-							event.preventDefault();
-							setMenuOpen(true);
-						}}
-						onKeyDown={handleKeyDown}
-					/>
-				}
+			<CardFrame
+				className="cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background focus:outline-none"
+				tabIndex={0}
+				onClick={() => setDialogOpen(true)}
+				onContextMenu={(event) => {
+					event.preventDefault();
+					setMenuOpen(true);
+				}}
+				onKeyDown={handleKeyDown}
 			>
 				<Card className="grow">
 					<CardHeader>
@@ -499,7 +481,7 @@ function NoteCard({ note }: { note: Note }): React.ReactNode {
 						/>
 					)}
 				</CardFrameFooter>
-			</DialogTrigger>
+			</CardFrame>
 			<DialogPopup bottomStickOnMobile={false}>
 				<NoteDialog
 					note={note}
