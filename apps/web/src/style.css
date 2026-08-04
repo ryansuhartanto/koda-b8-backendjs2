@@ -2,6 +2,33 @@
 @plugin "@tailwindcss/typography";
 @import "@fontsource-variable/inter";
 
+@utility prose {
+	p {
+		@apply my-[.5em] first:mbs-0 last:mbe-0;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4 {
+		font-weight: unset;
+	}
+
+	blockquote {
+		p:before,
+		p:after {
+			content: unset;
+		}
+		font-style: unset;
+		font-weight: unset;
+	}
+
+	code,
+	pre {
+		font-weight: unset;
+	}
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
