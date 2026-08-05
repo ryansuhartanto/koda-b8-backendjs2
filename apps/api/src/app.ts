@@ -2,7 +2,7 @@ import http2 from "node:http2";
 
 import { apiReference } from "@scalar/express-api-reference";
 import express from "express";
-import type { Express } from "express";
+import type { ErrorRequestHandler, Express } from "express";
 
 import { openapi } from "#/lib/openapi";
 import { authMiddleware } from "#/middlewares/auth";
@@ -34,5 +34,14 @@ app.use(
 app.use("/auth", authRouter);
 app.use("/users", authMiddleware, userRouter);
 app.use("/notes", authMiddleware, noteRouter);
+
+// express 5 forwards rejected handlers here; without it a failed query answers in HTML
+const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+	res
+		.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
+		.json({ error: (error as Error).message });
+};
+
+app.use(errorHandler);
 
 export default app;

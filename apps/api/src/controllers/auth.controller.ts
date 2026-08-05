@@ -63,7 +63,7 @@ export const register: RequestHandler = async (req, res) => {
 	const user = await User.create({
 		name,
 		email,
-		password: await hash(password, cost),
+		password_hash: await hash(password, cost),
 	});
 
 	res.status(http2.constants.HTTP_STATUS_CREATED).json(session(user));
@@ -88,7 +88,7 @@ export const login: RequestHandler = async (req, res) => {
 
 	const user = await User.findByEmail(email);
 
-	if (!user || !(await compare(password, user.password))) {
+	if (!user || !(await compare(password, user.password_hash))) {
 		res
 			.status(http2.constants.HTTP_STATUS_UNAUTHORIZED)
 			.json({ error: invalidCredentials });

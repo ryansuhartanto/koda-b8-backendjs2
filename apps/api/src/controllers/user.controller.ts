@@ -2,7 +2,6 @@ import http2 from "node:http2";
 
 import type { RequestHandler } from "express";
 
-import * as Note from "#/models/note.model";
 import * as User from "#/models/user.model";
 
 type idParams = {
@@ -62,7 +61,6 @@ export const del: RequestHandler<idParams> = async (req, res) => {
 		return;
 	}
 
-	await Note.removeByUser(id);
 	await User.remove(id);
 
 	res.json();

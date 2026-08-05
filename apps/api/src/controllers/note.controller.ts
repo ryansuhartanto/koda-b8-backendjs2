@@ -60,9 +60,7 @@ export const post: RequestHandler = async (req, res) => {
 export const patch: RequestHandler<idParams> = async (req, res) => {
 	const { idUser } = res.locals as AuthLocals;
 	const id = Number(req.params.id);
-	const note = await findOwned(id, idUser);
-
-	if (!note) {
+	if (!(await findOwned(id, idUser))) {
 		res
 			.status(http2.constants.HTTP_STATUS_NOT_FOUND)
 			.json({ error: "note not found" });
@@ -71,12 +69,7 @@ export const patch: RequestHandler<idParams> = async (req, res) => {
 
 	const { title, body } = req.body as Partial<Note.Note>;
 
-	res.json(
-		await Note.edit(id, {
-			title: title ?? note.title,
-			body: body ?? note.body,
-		}),
-	);
+	res.json(await Note.edit(id, { title, body }));
 };
 
 export const del: RequestHandler<idParams> = async (req, res) => {
