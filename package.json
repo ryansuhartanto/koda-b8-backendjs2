@@ -3,9 +3,6 @@
 	"license": "MIT",
 	"author": "Ryan Suhartanto <suhartanto@kekkon.nexus>",
 	"repository": "ryansuhartanto/koda-b8-backendjs2",
-	"workspaces": [
-		"apps/*"
-	],
 	"type": "module",
 	"imports": {
 		"#/package.json": "./package.json"
