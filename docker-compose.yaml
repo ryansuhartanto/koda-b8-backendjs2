@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: "${PGPASSWORD}"
       POSTGRES_DB: "${PGDATABASE}"
     volumes:
-      - db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql
       # only run on an empty volume, in file name order
       - ./db/migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/000001_init.up.sql:ro
       - ./db/seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
